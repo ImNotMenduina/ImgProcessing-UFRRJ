@@ -1,0 +1,2 @@
+# ImgProcessing-UFRRJ
+Opencv + Tesseract
