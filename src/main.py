@@ -10,11 +10,12 @@ pytesseract.pytesseract.tesseract_cmd = PATH + r"\tesseract.exe"
 from googletrans import Translator
 from matplotlib import pyplot as plt
 
-def tradutor():
-    img = cv2.imread(r"..\data\img\textEnglish.png")
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    text = pytesseract.image_to_string(img, lang="eng")
+def translator(img):
+    text = pytesseract.image_to_string(img, lang="fra")
     lines = text.splitlines()
+
+    # print(text)
+    # print(lines)
 
     finalText = ""
 
@@ -23,10 +24,9 @@ def tradutor():
             finalText += b + ' '
 
     translator = Translator()
-    translation = translator.translate(finalText, src="en", dest="pt")
+    translation = translator.translate(finalText, src="fr", dest="pt")
 
-    print(translation.text)
-
+    return translation.text
 def showSingleImage(img, title, size):
     fig, axis = plt.subplots(figsize=size)
 
@@ -74,17 +74,44 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
                 xId = 0
                 yId += 1
     plt.show()
+def simpleThresholding(img):
+    imgGray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    return cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)
+def filtroMediana(img, k):
 
-def filtroMediana():
-    imgOriginal = cv2.imread(r"..\data\img\dog.jpg") #ORIGINAL IMG
+    # imgArray = [imgOriginal, imgReplicate] #HERE I STORED BOTH IMAGES
+    # title = ["Original", "Filtro da Mediana"]
+    #
+    # showMultipleImages(imgArray, title, (12,8),2, 1)
+    return cv2.medianBlur(img, k)
+def dilate(img):
+    kernel = np.ones((2, 2), np.uint8)
+    img = cv2.dilate(img, kernel, iterations=1)
+    return img
+def loadImg(src):
+    PATH = "{}{}".format("..\\data\\img\\", src)
+    imgOriginal = cv2.imread(PATH) #ORIGINAL IMG
     imgOriginal = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2RGB)
-    imgReplicate = cv2.medianBlur(imgOriginal, 7)
-    imgArray = [imgOriginal, imgReplicate] #HERE I STORED BOTH IMAGES
-    title = ["Original", "Filtro da Mediana"]
-    showMultipleImages(imgArray, title, (12,8),2, 1)
 
+    return imgOriginal
 def main():
-    filtroMediana()
-    #tradutor()
+    #load image : text in french
+    imgOriginal = loadImg("frances.png")
+
+    #median filter && thresholding : treat noise
+    img = filtroMediana(imgOriginal, 3)
+    ret, img = simpleThresholding(img)
+
+    #dilate: we want to treat some characters and recover
+    img = dilate(img)
+
+    #text treatment
+    images = [imgOriginal, img]
+    titles = ["Original", "Final"]
+    showMultipleImages(images, titles, (20,8), 2, 1)
+
+    #translate our text
+    text = translator(img)
+    print(text)
 
 main()
