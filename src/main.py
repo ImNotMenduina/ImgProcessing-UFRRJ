@@ -1,8 +1,31 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import pytesseract
 
+# install bin on Windows
+PATH = r"C:\Users\mynam\AppData\Local\Programs\Tesseract-OCR"
+pytesseract.pytesseract.tesseract_cmd = PATH + r"\tesseract.exe"
+
+from googletrans import Translator
 from matplotlib import pyplot as plt
+
+def tradutor():
+    img = cv2.imread(r"..\data\img\textEnglish.png")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    text = pytesseract.image_to_string(img, lang="eng")
+    lines = text.splitlines()
+
+    finalText = ""
+
+    for b in lines:
+        if (b != ''):
+            finalText += b + ' '
+
+    translator = Translator()
+    translation = translator.translate(finalText, src="en", dest="pt")
+
+    print(translation.text)
 
 def showSingleImage(img, title, size):
     fig, axis = plt.subplots(figsize=size)
@@ -53,13 +76,15 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
     plt.show()
 
 def filtroMediana():
-    imgOriginal = cv2.imread(r"..\data\img\earth.png") #ORIGINAL IMG
-    imgReplicate = cv2.medianBlur(imgOriginal, 5)
+    imgOriginal = cv2.imread(r"..\data\img\dog.jpg") #ORIGINAL IMG
+    imgOriginal = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2RGB)
+    imgReplicate = cv2.medianBlur(imgOriginal, 7)
     imgArray = [imgOriginal, imgReplicate] #HERE I STORED BOTH IMAGES
     title = ["Original", "Filtro da Mediana"]
     showMultipleImages(imgArray, title, (12,8),2, 1)
 
 def main():
     filtroMediana()
+    #tradutor()
 
 main()
