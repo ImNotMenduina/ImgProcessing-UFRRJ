@@ -85,7 +85,7 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
 def simpleThresholding(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    return cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)
+    return cv2.threshold(img, 170, 255, cv2.THRESH_BINARY)
 
 
 def filtroMediana(img, k):
@@ -132,18 +132,24 @@ def main():
     # load image : text in french
     imgOriginal = loadImg("frances.png")
 
-    # median filter && thresholding : treat noise
+    # median filter: treat noise
     img = filtroMediana(imgOriginal, 3)
-    ret, img = simpleThresholding(img)
 
-    # dilate: we want to treat some characters and recover
-    img = dilate(img)
+    # imagem com filtro black hat
+    imgBlackhatFilter = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, np.ones((15, 15), np.uint8))
+
+    ret, imgThresholded = simpleThresholding(imgBlackhatFilter)
+
+    # dilate: we want to treat some characters and recover them
+    img = dilate(imgThresholded)
+
+    # median filter: treat noise
+    img = filtroMediana(img, 3)
 
     # translate our text
     text = translator(img)
 
     ###recognizing words
-
     imgOriginal = wordBoxes(imgOriginal)
     img = wordBoxes(img)
 
