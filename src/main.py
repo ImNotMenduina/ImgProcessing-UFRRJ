@@ -23,6 +23,7 @@ def translator(img):
         if (b != ''):
             finalText += b + ' '
 
+    print(finalText)
     translator = Translator()
     translation = translator.translate(finalText, src="fr", dest="pt")
 
@@ -75,7 +76,7 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
                 yId += 1
     plt.show()
 def simpleThresholding(img):
-    imgGray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)
 def filtroMediana(img, k):
 
@@ -91,9 +92,23 @@ def dilate(img):
 def loadImg(src):
     PATH = "{}{}".format("..\\data\\img\\", src)
     imgOriginal = cv2.imread(PATH) #ORIGINAL IMG
-    imgOriginal = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2RGB)
 
     return imgOriginal
+def wordBoxes(img):
+    #imH, imW,_ = img.shape
+    boxes = pytesseract.image_to_data(img, lang='fra')
+
+    for x,linha in enumerate(boxes.splitlines()):
+        if x != 0 :
+            linha = linha.split()
+            if len(linha) == 12:
+                ### linha with length equal to 12, it means that there's a word.
+                x,y,w,h  = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
+                #palavra = linha[11]
+                cv2.rectangle(img, (x,y), (w+x,h+y), (255,0,0), 2)
+                #cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+
+    return img
 def main():
     #load image : text in french
     imgOriginal = loadImg("frances.png")
@@ -105,13 +120,20 @@ def main():
     #dilate: we want to treat some characters and recover
     img = dilate(img)
 
-    #text treatment
-    images = [imgOriginal, img]
-    titles = ["Original", "Final"]
-    showMultipleImages(images, titles, (20,8), 2, 1)
-
     #translate our text
     text = translator(img)
+
+    ###recognizing words
+
+    imgOriginal = wordBoxes(imgOriginal)
+    img = wordBoxes(img)
+
+    ##compare before and after
+    images = [imgOriginal, img]
+    titles = ["Before", "After"]
+    showMultipleImages(images, titles, (20, 8), 2, 1)
+
+    #translate
     print(text)
 
 main()
