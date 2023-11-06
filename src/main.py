@@ -10,6 +10,7 @@ pytesseract.pytesseract.tesseract_cmd = PATH + r"\tesseract.exe"
 from googletrans import Translator
 from matplotlib import pyplot as plt
 
+
 def translator(img):
     text = pytesseract.image_to_string(img, lang="fra")
     lines = text.splitlines()
@@ -28,12 +29,16 @@ def translator(img):
     translation = translator.translate(finalText, src="fr", dest="pt")
 
     return translation.text
+
+
 def showSingleImage(img, title, size):
     fig, axis = plt.subplots(figsize=size)
 
     axis.imshow(img, 'gray')
     axis.set_title(title, fontdict={'fontsize': 22, 'fontweight': 'medium'})
     plt.show()
+
+
 def showMultipleImages(imgsArray, titlesArray, size, x, y):
     if (x < 1 or y < 1):
         print("ERRO: X e Y não podem ser zero ou abaixo de zero!")
@@ -75,52 +80,66 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
                 xId = 0
                 yId += 1
     plt.show()
+
+
 def simpleThresholding(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    return cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)
-def filtroMediana(img, k):
 
+    return cv2.threshold(img, 60, 255, cv2.THRESH_BINARY_INV)
+
+
+def filtroMediana(img, k):
     # imgArray = [imgOriginal, imgReplicate] #HERE I STORED BOTH IMAGES
     # title = ["Original", "Filtro da Mediana"]
     #
     # showMultipleImages(imgArray, title, (12,8),2, 1)
+
     return cv2.medianBlur(img, k)
+
+
 def dilate(img):
     kernel = np.ones((2, 2), np.uint8)
     img = cv2.dilate(img, kernel, iterations=1)
+
     return img
+
+
 def loadImg(src):
     PATH = "{}{}".format("..\\data\\img\\", src)
-    imgOriginal = cv2.imread(PATH) #ORIGINAL IMG
+    imgOriginal = cv2.imread(PATH)  # ORIGINAL IMG
 
     return imgOriginal
+
+
 def wordBoxes(img):
-    #imH, imW,_ = img.shape
+    # imH, imW,_ = img.shape
     boxes = pytesseract.image_to_data(img, lang='fra')
 
-    for x,linha in enumerate(boxes.splitlines()):
-        if x != 0 :
+    for x, linha in enumerate(boxes.splitlines()):
+        if x != 0:
             linha = linha.split()
             if len(linha) == 12:
                 ### linha with length equal to 12, it means that there's a word.
-                x,y,w,h  = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
-                #palavra = linha[11]
-                cv2.rectangle(img, (x,y), (w+x,h+y), (255,0,0), 2)
-                #cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+                x, y, w, h = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
+                # palavra = linha[11]
+                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 2)
+                # cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
 
     return img
+
+
 def main():
-    #load image : text in french
+    # load image : text in french
     imgOriginal = loadImg("frances.png")
 
-    #median filter && thresholding : treat noise
+    # median filter && thresholding : treat noise
     img = filtroMediana(imgOriginal, 3)
     ret, img = simpleThresholding(img)
 
-    #dilate: we want to treat some characters and recover
+    # dilate: we want to treat some characters and recover
     img = dilate(img)
 
-    #translate our text
+    # translate our text
     text = translator(img)
 
     ###recognizing words
@@ -133,7 +152,8 @@ def main():
     titles = ["Before", "After"]
     showMultipleImages(images, titles, (20, 8), 2, 1)
 
-    #translate
+    # translate
     print(text)
+
 
 main()
