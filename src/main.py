@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 
 
 def translator(img):
-    text = pytesseract.image_to_string(img, lang="fra")
+    text = pytesseract.image_to_string(img, lang="eng")
     lines = text.splitlines()
 
     # print(text)
@@ -26,7 +26,7 @@ def translator(img):
 
     print(finalText)
     translator = Translator()
-    translation = translator.translate(finalText, src="fr", dest="pt")
+    translation = translator.translate(finalText, src="en", dest="pt")
 
     return translation.text
 
@@ -114,7 +114,7 @@ def loadImg(src):
 
 def wordBoxes(img):
     # imH, imW,_ = img.shape
-    boxes = pytesseract.image_to_data(img, lang='fra')
+    boxes = pytesseract.image_to_data(img, lang='eng')
 
     for x, linha in enumerate(boxes.splitlines()):
         if x != 0:
@@ -123,7 +123,7 @@ def wordBoxes(img):
                 ### linha with length equal to 12, it means that there's a word.
                 x, y, w, h = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
                 # palavra = linha[11]
-                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 2)
+                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 1)
                 # cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
 
     return img
@@ -131,7 +131,7 @@ def wordBoxes(img):
 
 def main():
     # load image : text in french
-    imgOriginal = loadImg("french.png")
+    imgOriginal = loadImg("iron.jpg")
 
     #thresholding : treat noise
 
@@ -146,13 +146,13 @@ def main():
 
     # median filter
 
-    img = filtroMediana(img_blackhat, 3)
+    #img = filtroMediana(img_blackhat, 3)
 
     ###################################################
     ############ IMG_ORIGINAL VS CLOSING VS BLACK HAT ###
     #########################################################
 
-    images = [imgOriginal, img_closing, img_blackhat, img]
+    images = [imgOriginal, img_closing, img_blackhat, img_blackhat]
     titles = ["img", "img_closing", "img_blackhat", "after median filter"]
     showMultipleImages(images, titles, (20, 8), 4, 1)
 
@@ -160,7 +160,7 @@ def main():
     ############ BLACK HAT ###
     #############################
 
-    threshold, img_threshold = cv2.threshold(img, 190, 255, cv2.THRESH_BINARY)
+    threshold, img_threshold = cv2.threshold(img_blackhat, 190, 255, cv2.THRESH_BINARY)
 
     # translate our text
     text = translator(img_threshold)
@@ -178,5 +178,7 @@ def main():
     # translate
     print(text)
 
+    cv2.imwrite("imgOriginal.jpg", imgOriginal)
+    cv2.imwrite("imgMod.jpg", imgMod)
 
 main()
