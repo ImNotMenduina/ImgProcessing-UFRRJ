@@ -114,7 +114,7 @@ def wordBoxes(img):
     # imH, imW,_ = img.shape
     # iron.jpg = eng
     # textEnglish.jpg = eng
-    boxes = pytesseract.image_to_data(img, lang='fra')
+    boxes = pytesseract.image_to_data(img, lang='eng')
 
     for x, linha in enumerate(boxes.splitlines()):
         if x != 0:
@@ -123,16 +123,15 @@ def wordBoxes(img):
                 ### linha with length equal to 12, it means that there's a word.
                 x, y, w, h = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
                 # palavra = linha[11]
-                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 1)
+                cv2.rectangle(img, (x, y), (w + x, h + y), (0, 255, 0), 1)
                 # cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
 
     return img
 
-
 def main():
     # load image : text in french
     ## IMAGENS DE TESTE : textEnglish.png , iron.jpg, french.png
-    imgOriginal = loadImg("french.png")
+    imgOriginal = loadImg("iron.jpg")
 
     #thresholding
     threshold, img_threshold = simpleThresholding(imgOriginal)
@@ -159,12 +158,11 @@ def main():
     ############ BLACK HAT ###
     #############################
 
-
     # median filter
     imgMedian = filtroMediana(img_blackhat, 3)
 
     # translate our text
-    text = translator(imgMedian)
+    #text = translator(imgMedian)
 
     ###recognizing words
 
@@ -177,7 +175,7 @@ def main():
     showMultipleImages(images, titles, (20, 8), 2, 1)
 
     # translate
-    print(text)
+    #print(text)
 
     cv2.imwrite("imgOriginal.jpg", imgOriginal)
     cv2.imwrite("imgMod.jpg", imgMod)
