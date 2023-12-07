@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 
 
 def translator(img):
-    text = pytesseract.image_to_string(img)
+    text = pytesseract.image_to_string(img, lang="fra")
     lines = text.splitlines()
 
     # print(text)
@@ -83,7 +83,8 @@ def showMultipleImages(imgsArray, titlesArray, size, x, y):
 
 
 def simpleThresholding(img):
-    return cv2.threshold(img, 72, 255, cv2.THRESH_BINARY)
+
+    return cv2.threshold(img, 170, 255, cv2.THRESH_BINARY)
 
 
 def filtroMediana(img, k):
@@ -103,18 +104,15 @@ def dilate(img):
 
 
 def loadImg(src):
-    PATH = "{}{}".format("data\\img\\", src)
+    PATH = "{}{}".format("..\\data\\img\\", src)
     imgOriginal = cv2.imread(PATH)  # ORIGINAL IMG
-    img = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2GRAY)
 
-    return img
+    return imgOriginal
 
 
 def wordBoxes(img):
     # imH, imW,_ = img.shape
-    # iron.jpg = eng
-    # textEnglish.jpg = eng
-    boxes = pytesseract.image_to_data(img, lang='eng')
+    boxes = pytesseract.image_to_data(img)
 
     for x, linha in enumerate(boxes.splitlines()):
         if x != 0:
@@ -123,61 +121,53 @@ def wordBoxes(img):
                 ### linha with length equal to 12, it means that there's a word.
                 x, y, w, h = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
                 # palavra = linha[11]
-                cv2.rectangle(img, (x, y), (w + x, h + y), (0, 255, 0), 1)
+                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 2)
                 # cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
 
     return img
 
+
 def main():
     # load image : text in french
-    ## IMAGENS DE TESTE : textEnglish.png , iron.jpg, french.png
-    imgOriginal = loadImg("iron.jpg")
+    imgOriginal = loadImg("textEnglish.png")
 
-    #thresholding
-    threshold, img_threshold = simpleThresholding(imgOriginal)
+    # 2 grayscale
+    img = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2GRAY)
 
-    #########################
-    ############ BLACK HAT ###
-    #############################
-
-    #para comparar com o blackhat
-    img_closing = cv2.morphologyEx(img_threshold, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
+    # median filter: treat noise
+    img = filtroMediana(img, 3)
 
     # imagem com filtro black hat
-    img_blackhat = cv2.morphologyEx(img_threshold, cv2.MORPH_BLACKHAT, np.ones((15, 15), np.uint8))
+    imgBlackhatFilter = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, np.ones((15, 15), np.uint8))
 
-    ###################################################
-    ############ IMG_ORIGINAL VS CLOSING VS BLACK HAT ###
-    #########################################################
+    #cv2.imshow("gomem", imgBlackhatFilter)
+    #ret, imgThresholded = simpleThresholding(imgBlackhatFilter)
 
-    images = [imgOriginal, img_closing, img_blackhat]
-    titles = ["img", "img_closing", "img_blackhat"]
-    showMultipleImages(images, titles, (20, 8), 3, 1)
+    # dilate: we want to treat some characters and recover them
+    img = dilate(imgBlackhatFilter)
 
-    #########################
-    ############ BLACK HAT ###
-    #############################
+    ret, imgThresholded = simpleThresholding(imgBlackhatFilter)
 
-    # median filter
-    imgMedian = filtroMediana(img_blackhat, 3)
+    # median filter: treat noise
+    img = filtroMediana(img, 3)
 
     # translate our text
-    #text = translator(imgMedian)
+    text = translator(img)
 
     ###recognizing words
-
     imgOriginal = wordBoxes(imgOriginal)
-    imgMod = wordBoxes(imgMedian)
+    img = wordBoxes(imgThresholded)
 
     ##compare before and after
-    images = [imgOriginal, imgMod]
+    images = [imgOriginal, img]
     titles = ["Before", "After"]
     showMultipleImages(images, titles, (20, 8), 2, 1)
 
-    # translate
-    #print(text)
+    cv2.imwrite("englishOriginal.png", imgOriginal)
+    cv2.imwrite("english.png" ,img)
 
-    cv2.imwrite("imgOriginal.jpg", imgOriginal)
-    cv2.imwrite("imgMod.jpg", imgMod)
+    # translate
+    print(text)
+
 
 main()
