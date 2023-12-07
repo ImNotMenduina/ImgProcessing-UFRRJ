@@ -112,6 +112,8 @@ def loadImg(src):
 
 def wordBoxes(img):
     # imH, imW,_ = img.shape
+    # iron.jpg = eng
+    # textEnglish.jpg = eng
     boxes = pytesseract.image_to_data(img, lang='fra')
 
     for x, linha in enumerate(boxes.splitlines()):
@@ -121,7 +123,7 @@ def wordBoxes(img):
                 ### linha with length equal to 12, it means that there's a word.
                 x, y, w, h = int(linha[6]), int(linha[7]), int(linha[8]), int(linha[9])
                 # palavra = linha[11]
-                cv2.rectangle(img, (x, y), (w + x, h + y), (0, 0, 0), 1)
+                cv2.rectangle(img, (x, y), (w + x, h + y), (255, 0, 0), 1)
                 # cv2.putText(img, palavra, (x, y + 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
 
     return img
