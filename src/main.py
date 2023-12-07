@@ -107,8 +107,9 @@ def dilate(img):
 def loadImg(src):
     PATH = "{}{}".format("..\\data\\img\\", src)
     imgOriginal = cv2.imread(PATH)  # ORIGINAL IMG
+    img = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2GRAY)
 
-    return imgOriginal
+    return img
 
 
 def wordBoxes(img):
@@ -130,25 +131,47 @@ def wordBoxes(img):
 
 def main():
     # load image : text in french
-    imgOriginal = loadImg("frances.png")
+    imgOriginal = loadImg("french.png")
 
-    # median filter && thresholding : treat noise
-    img = filtroMediana(imgOriginal, 3)
-    ret, img = simpleThresholding(img)
+    #thresholding : treat noise
 
-    # dilate: we want to treat some characters and recover
-    img = dilate(img)
+    #########################
+    ############ BLACK HAT ###
+    #############################
+
+    img_closing = cv2.morphologyEx(imgOriginal, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
+
+    # imagem com filtro black hat
+    img_blackhat = cv2.morphologyEx(imgOriginal, cv2.MORPH_BLACKHAT, np.ones((15, 15), np.uint8))
+
+    # median filter
+
+    img = filtroMediana(img_blackhat, 3)
+
+    ###################################################
+    ############ IMG_ORIGINAL VS CLOSING VS BLACK HAT ###
+    #########################################################
+
+    images = [imgOriginal, img_closing, img_blackhat, img]
+    titles = ["img", "img_closing", "img_blackhat", "after median filter"]
+    showMultipleImages(images, titles, (20, 8), 4, 1)
+
+    #########################
+    ############ BLACK HAT ###
+    #############################
+
+    threshold, img_threshold = cv2.threshold(img, 190, 255, cv2.THRESH_BINARY)
 
     # translate our text
-    text = translator(img)
+    text = translator(img_threshold)
 
     ###recognizing words
 
     imgOriginal = wordBoxes(imgOriginal)
-    img = wordBoxes(img)
+    imgMod = wordBoxes(img_threshold)
 
     ##compare before and after
-    images = [imgOriginal, img]
+    images = [imgOriginal, imgMod]
     titles = ["Before", "After"]
     showMultipleImages(images, titles, (20, 8), 2, 1)
 
