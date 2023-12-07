@@ -162,7 +162,7 @@ def main():
     imgMedian = filtroMediana(img_blackhat, 3)
 
     # translate our text
-    #text = translator(imgMedian)
+    text = translator(imgMedian)
 
     ###recognizing words
 
@@ -175,7 +175,7 @@ def main():
     showMultipleImages(images, titles, (20, 8), 2, 1)
 
     # translate
-    #print(text)
+    print(text)
 
     cv2.imwrite("imgOriginal.jpg", imgOriginal)
     cv2.imwrite("imgMod.jpg", imgMod)
